@@ -1,18 +1,14 @@
-﻿using BitrateCalculator.Domain;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using BitrateCalculator.Models;
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 
-namespace BitrateCalculator.Api
+namespace BitrateCalculator.Responses
 {
     public sealed class DeviceResponseParser
     {
         public DeviceSnapshot Parse(string json)
         {
-            if(string.IsNullOrWhiteSpace(json))
+            if (string.IsNullOrWhiteSpace(json))
                 throw new ArgumentException("The JSON payload is empty", nameof(json));
 
             DeviceResponse? response;
@@ -33,7 +29,7 @@ namespace BitrateCalculator.Api
 
             if (response.Nics != null)
             {
-                foreach(var nic in response.Nics)
+                foreach (var nic in response.Nics)
                 {
                     nics.Add(MapNic(nic));
                 }
@@ -45,7 +41,7 @@ namespace BitrateCalculator.Api
                 Model = Require(response.Model, "Model"),
                 Nics = nics
             };
-            
+
         }
 
         private static NicSample MapNic(NicResponse nic)
@@ -65,7 +61,7 @@ namespace BitrateCalculator.Api
 
         private static string Require(string? value, string fieldName)
         {
-            if(string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value))
                 throw new FormatException($"The payload is missing a value for '{fieldName}'.");
 
             return value;

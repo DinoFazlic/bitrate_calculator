@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BitrateCalculator.Domain
+﻿
+namespace BitrateCalculator.Models
 {
     public sealed record NicSample
     {

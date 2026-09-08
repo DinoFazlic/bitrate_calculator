@@ -1,7 +1,5 @@
-﻿using BitrateCalculator.Domain;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using BitrateCalculator.Models;
+
 
 namespace BitrateCalculator.Calculation
 {

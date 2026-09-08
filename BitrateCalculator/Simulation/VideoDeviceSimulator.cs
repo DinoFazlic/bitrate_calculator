@@ -1,17 +1,17 @@
-﻿using BitrateCalculator.Api;
-using System;
-using System.Collections.Generic;
+﻿using BitrateCalculator.Responses;
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 
 namespace BitrateCalculator.Simulation
 {
     public sealed class VideoDeviceSimulator
     {
+        private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffffff'Z'";
+
         private readonly string _deviceName;
         private readonly string _modelName;
         private readonly List<SimulatedNic> _nics;
+
         private DateTimeOffset _lastPollTime;
         private bool _hasBeenPolled;
 
@@ -22,14 +22,18 @@ namespace BitrateCalculator.Simulation
             _nics = nics;
         }
 
+
+        /// Reads the device. Advances every counter by the traffic that passed since the
+        /// previous read, then returns the JSON payload.
         public string Poll()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
 
-            // On the first read there is no previous
+            // On the very first read there is no previous read to measure from, so the
+            // counters stay exactly as they were configured.
             double elapsedSeconds = 0;
 
-            if(_hasBeenPolled)
+            if (_hasBeenPolled)
             {
                 elapsedSeconds = (now - _lastPollTime).TotalSeconds;
             }
@@ -37,33 +41,35 @@ namespace BitrateCalculator.Simulation
             _lastPollTime = now;
             _hasBeenPolled = true;
 
-            List<NicResponse> nicResponses = new List<NicResponse>();
-
-            foreach (SimulatedNic nic in _nics)
-            {
-                nic.Advance(elapsedSeconds);
-
-                NicResponse nicResponse = new NicResponse
-                {
-                    Description = nic.Description,
-                    Mac = nic.Mac,
-                    Timestamp = now.ToString("o", CultureInfo.InvariantCulture),
-                    Rx = nic.RxOctets.ToString(CultureInfo.InvariantCulture),
-                    Tx = nic.TxOctets.ToString(CultureInfo.InvariantCulture)
-                };
-
-                nicResponses.Add(nicResponse);
-            }
-
             DeviceResponse response = new DeviceResponse
             {
                 Device = _deviceName,
                 Model = _modelName,
-                Nics = nicResponses
+                Nics = BuildNicResponses(now, elapsedSeconds)
             };
 
             return JsonSerializer.Serialize(response);
         }
 
+        private List<NicResponse> BuildNicResponses(DateTimeOffset now, double elapsedSeconds)
+        {
+            List<NicResponse> responses = new List<NicResponse>();
+
+            foreach (SimulatedNic nic in _nics)
+            {
+                nic.Advance(elapsedSeconds);
+
+                responses.Add(new NicResponse
+                {
+                    Description = nic.Description,
+                    Mac = nic.Mac,
+                    Timestamp = now.UtcDateTime.ToString(TimestampFormat, CultureInfo.InvariantCulture),
+                    Rx = nic.RxOctets.ToString(CultureInfo.InvariantCulture),
+                    Tx = nic.TxOctets.ToString(CultureInfo.InvariantCulture)
+                });
+            }
+
+            return responses;
         }
+    }
 }
