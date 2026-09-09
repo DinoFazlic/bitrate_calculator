@@ -22,17 +22,20 @@ namespace BitrateCalculator
 
         private const double TrafficVariation = 0.20;
 
-        private const int NumberOfPolls = 15;
+        private const int NumberOfPolls = 50;
 
         static void Main(string[] args)
         {
             TimeSpan pollingInterval = TimeSpan.FromSeconds(1.0 / PollingRateHz);
 
             VideoDeviceSimulator device = DemoDevice.Create(TrafficVariation);
+            
             DeviceResponseParser parser = new DeviceResponseParser();
+            
             RateCalculator calculator = new RateCalculator(
                 pollingInterval * StalenessFactor,
                 MaximumPlausibleBitsPerSecond);
+            
             ConsoleReporter reporter = new ConsoleReporter();
 
             reporter.ReportStart(PollingRateHz, pollingInterval);
